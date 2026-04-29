@@ -12,15 +12,14 @@ class User extends Authenticatable
 
     /**
      * Atribut yang dapat diisi (Mass Assignable).
-     * UPDATE REVISI: Menambahkan 'phone' dan 'city' agar bisa disimpan ke database.
      */
     protected $fillable = [
         'name',
         'username', 
+        'phone',    // Sudah benar
+        'city',     // Sudah benar
         'password',
-        'role',
-        'phone', // Tambahan revisi nomor HP
-        'city',  // Tambahan revisi kota/alamat
+        'role',     // Sudah benar
     ];
 
     /**
@@ -37,13 +36,13 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'username_verified_at' => 'datetime',
+            // Kita gunakan password hashing otomatis
             'password' => 'hashed',
         ];
     }
 
     /**
-     * Helper untuk mengecek role user.
+     * Helper untuk mengecek role user (untuk proteksi halaman Admin).
      */
     public function hasRole($role)
     {

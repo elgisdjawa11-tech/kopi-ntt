@@ -14,13 +14,15 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('username')->unique(); // Mengganti email menjadi username
+            $table->string('username')->unique();
+            $table->string('phone'); // Tambahan untuk nomor HP
+            $table->string('city');  // Tambahan untuk alamat/kota
             $table->string('password');
+            $table->string('role')->default('pelanggan'); // Tambahan untuk role user
             $table->rememberToken();
             $table->timestamps();
         });
 
-        // Tabel password_reset_tokens juga disesuaikan menggunakan username sebagai primary
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('username')->primary(); 
             $table->string('token');
