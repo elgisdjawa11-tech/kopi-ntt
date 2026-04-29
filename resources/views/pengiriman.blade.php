@@ -21,7 +21,6 @@
             color: var(--coffee-dark); 
         }
 
-        /* STEPPER SYNC DENGAN LOGIKA 3 TAHAP */
         .stepper {
             display: flex;
             justify-content: center;
@@ -133,7 +132,6 @@
         <div class="fw-bold fs-3" style="font-family: 'Playfair Display', serif;">KOPI <span style="color: var(--accent)">NTT</span></div>
     </div>
 
-    {{-- STEPPER: Sinkron dengan sistem 3 tahap kita --}}
     <div class="stepper">
         <div class="step active">
             <div class="step-icon"><i class="bi bi-geo-alt-fill"></i></div>
@@ -153,10 +151,20 @@
         <div class="col-lg-11">
             <div class="checkout-card p-4 p-lg-5">
                 <div class="row g-5">
-                    
                     <div class="col-md-7">
                         <h3 class="section-title">Detail Pengiriman <br>& Tujuan</h3>
                         
+                        {{-- BAGIAN PESAN ERROR (TAMBAHAN BARU) --}}
+                        @if ($errors->any())
+                            <div class="alert alert-danger rounded-4 shadow-sm mb-4">
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <form action="{{ route('checkout.process') }}" method="POST">
                             @csrf 
                             
@@ -166,19 +174,19 @@
 
                             <div class="mb-4">
                                 <label class="form-label">Nama Lengkap Penerima</label>
-                                <input type="text" name="nama" class="form-control" placeholder="Contoh: Eulogius Jawa" required>
+                                <input type="text" name="nama" class="form-control" value="{{ old('nama') }}" placeholder="Contoh: Eulogius Jawa" required>
                             </div>
 
                             <div class="mb-4">
                                 <label class="form-label">Alamat Lengkap Pengiriman</label>
-                                <textarea name="alamat" class="form-control" rows="4" placeholder="Nama jalan, RT/RW, Kecamatan, dan Kota/Kabupaten" required></textarea>
+                                <textarea name="alamat" class="form-control" rows="4" placeholder="Nama jalan, RT/RW, Kecamatan, dan Kota/Kabupaten" required>{{ old('alamat') }}</textarea>
                             </div>
 
                             <div class="mb-4">
                                 <label class="form-label">Nomor WhatsApp Aktif</label>
                                 <div class="input-group">
                                     <span class="input-group-text">+62</span>
-                                    <input type="text" name="hp" class="form-control" placeholder="812xxxxxx" required>
+                                    <input type="text" name="hp" class="form-control" value="{{ old('hp') }}" placeholder="812xxxxxx" required>
                                 </div>
                                 <small class="text-muted mt-2 d-block">*Nomor ini digunakan kurir untuk koordinasi pengiriman paket.</small>
                             </div>
