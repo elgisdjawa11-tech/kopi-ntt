@@ -14,15 +14,27 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             
-            // TAMBAHKAN BARIS INI: Untuk menghubungkan pesanan dengan User yang login
+            // Relasi ke tabel users
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
             $table->string('nama_penerima');
             $table->text('alamat_pengiriman');
             $table->string('nomor_hp');
             $table->integer('total_harga');
-            $table->string('bukti_pembayaran')->nullable();
-            $table->enum('status', ['Menunggu Pembayaran', 'Diproses', 'Dikirim', 'Selesai'])->default('Menunggu Pembayaran');
+
+            // Baris bukti_pembayaran dihapus karena sudah menggunakan Payment Gateway
+
+            // Daftar status diperlengkap agar tidak error "Data truncated" lagi
+            $table->enum('status', [
+                'Menunggu Pembayaran', 
+                'Menunggu Verifikasi', 
+                'Diproses', 
+                'Dikirim', 
+                'Selesai',
+                'Dibatalkan',
+                'Expired'
+            ])->default('Menunggu Pembayaran');
+
             $table->timestamps();
         });
     }
