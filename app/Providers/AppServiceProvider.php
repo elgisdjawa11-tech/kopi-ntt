@@ -3,18 +3,24 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL; // Tambahkan baris ini
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Register any application services.
+     */
     public function register(): void
     {
         //
     }
 
+    /**
+     * Bootstrap any application services.
+     */
     public function boot(): void
     {
-        // Tambahkan baris ini agar semua link otomatis jadi HTTPS di Railway
+        // Memaksa skema HTTPS jika aplikasi tidak berjalan di lingkungan lokal
         if (config('app.env') !== 'local') {
             URL::forceScheme('https');
         }

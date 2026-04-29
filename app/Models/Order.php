@@ -10,7 +10,7 @@ class Order extends Model
     use HasFactory;
 
     /**
-     * Kolom yang diizinkan untuk diisi secara massal (Mass Assignment).
+     * Kolom yang diizinkan untuk diisi secara massal.
      */
     protected $fillable = [
         'user_id', 
@@ -19,9 +19,7 @@ class Order extends Model
         'status', 
         'alamat_pengiriman',
         'nomor_hp',
-        'bukti_bayar',      
-        'foto_penerimaan',
-        'snap_token'
+        'snap_token' // Penting untuk Midtrans
     ];
 
     /**
@@ -41,9 +39,8 @@ class Order extends Model
     }
 
     /**
-     * ACCESSOR: Mengubah status menjadi huruf kecil & menghapus spasi.
-     * Ini sangat penting agar status "Menunggu Verifikasi" dari database 
-     * bisa dibaca sebagai "menunggu verifikasi" di Controller dan View.
+     * ACCESSOR: Mengubah status menjadi huruf kecil saat dipanggil.
+     * Memudahkan pengecekan string di kodingan.
      */
     public function getStatusAttribute($value)
     {
@@ -59,18 +56,25 @@ class Order extends Model
     }
 
     /**
-     * Helper untuk mengecek apakah pesanan sudah dibayar atau masuk tahap verifikasi.
-     * Kita tambahkan 'menunggu verifikasi' di sini agar tombol konfirmasi muncul.
+     * Helper untuk mengecek apakah pesanan sudah dibayar.
+     * Disesuaikan dengan enum: 'diproses', 'dikirim', 'selesai'.
      */
     public function isPaid()
     {
-        $statusValid = [
-            'menunggu verifikasi', 
-            'pembayaran berhasil', 
-            'settlement', 
-            'capture'
+        $statusSudahBayar = [
+            'diproses', 
+            'dikirim', 
+            'selesai'
         ];
         
-        return in_array($this->status, $statusValid);
+        return in_array($this->status, $statusSudahBayar);
+    }
+
+    /**
+     * Helper untuk mengecek apakah pesanan masih menunggu pembayaran.
+     */
+    public function isPending()
+    {
+        return $this->status === 'menunggu pembayaran';
     }
 }

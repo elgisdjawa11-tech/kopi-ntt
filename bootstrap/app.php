@@ -12,15 +12,18 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         
-        // 1. MENDAFTARKAN ALIAS MIDDLEWARE (Milik Kamu Sebelumnya - Sangat Penting)
-        // Ini agar Laravel tahu bahwa kata 'role' merujuk ke file RoleMiddleware Anda
+        // 1. MENDAFTARKAN ALIAS MIDDLEWARE
+        // Agar kamu bisa menggunakan middleware 'role:admin' di file routes/web.php
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
 
-        // 2. KODE BARU: Membuka pintu khusus untuk Midtrans agar pesanan otomatis masuk ke Admin
+        // 2. MENGECUALIKAN CSRF (PENTING UNTUK MIDTRANS)
+        // Midtrans mengirim data POST dari server mereka, jadi tidak punya token CSRF Laravel.
+        // Kita harus membuka 'pintu khusus' ini agar status pesanan bisa otomatis berubah di Admin.
         $middleware->validateCsrfTokens(except: [
-            'midtrans-callback',
+            '/midtrans-callback',
+            'midtrans-callback', // Ditulis dua versi (dengan/tanpa slash) agar lebih aman
         ]);
 
     })

@@ -22,7 +22,9 @@ return new class extends Migration
             $table->string('nomor_hp');
             $table->integer('total_harga');
 
-            // Baris bukti_pembayaran dihapus karena sudah menggunakan Payment Gateway
+            // --- TAMBAHKAN BARIS INI ---
+            $table->string('snap_token')->nullable();
+            // ---------------------------
 
             // Daftar status diperlengkap agar tidak error "Data truncated" lagi
             $table->enum('status', [
