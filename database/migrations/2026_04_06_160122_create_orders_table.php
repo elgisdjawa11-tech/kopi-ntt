@@ -9,19 +9,23 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-   public function up(): void
-{
-    Schema::create('orders', function (Blueprint $table) {
-        $table->id();
-        $table->string('nama_penerima'); // [cite: 354]
-        $table->text('alamat_pengiriman'); // [cite: 332]
-        $table->string('nomor_hp'); // [cite: 354]
-        $table->integer('total_harga'); // [cite: 327]
-        $table->string('bukti_pembayaran')->nullable(); // [cite: 282, 333]
-        $table->enum('status', ['Menunggu Pembayaran', 'Diproses', 'Dikirim', 'Selesai'])->default('Menunggu Pembayaran'); // [cite: 283, 325]
-        $table->timestamps();
-    });
-}
+    public function up(): void
+    {
+        Schema::create('orders', function (Blueprint $table) {
+            $table->id();
+            
+            // TAMBAHKAN BARIS INI: Untuk menghubungkan pesanan dengan User yang login
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+            $table->string('nama_penerima');
+            $table->text('alamat_pengiriman');
+            $table->string('nomor_hp');
+            $table->integer('total_harga');
+            $table->string('bukti_pembayaran')->nullable();
+            $table->enum('status', ['Menunggu Pembayaran', 'Diproses', 'Dikirim', 'Selesai'])->default('Menunggu Pembayaran');
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.
