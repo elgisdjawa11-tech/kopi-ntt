@@ -22,11 +22,10 @@ return new class extends Migration
             $table->string('nomor_hp');
             $table->integer('total_harga');
 
-            // --- TAMBAHKAN BARIS INI ---
+            // KOLOM PENTING UNTUK MIDTRANS
             $table->string('snap_token')->nullable();
-            // ---------------------------
 
-            // Daftar status diperlengkap agar tidak error "Data truncated" lagi
+            // Daftar status yang sinkron dengan Controller dan Model
             $table->enum('status', [
                 'Menunggu Pembayaran', 
                 'Menunggu Verifikasi', 
