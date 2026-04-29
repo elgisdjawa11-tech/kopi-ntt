@@ -18,8 +18,9 @@ class OrderController extends Controller
      */
     public function index() 
     {
-        // Menambahkan 'menunggu verifikasi' agar muncul di statistik dashboard
+        // Menambahkan 'pending' agar muncul di statistik dashboard
         $validStatuses = [
+            'pending', // TAMBAHKAN INI
             'menunggu verifikasi', 
             'pembayaran berhasil', 
             'settlement', 
@@ -49,19 +50,9 @@ class OrderController extends Controller
      */
     public function listOrders()
     {
-        // Status 'menunggu verifikasi' dimasukkan agar data tampil di tabel index
-        $validStatuses = [
-            'menunggu verifikasi', 
-            'pembayaran berhasil', 
-            'settlement', 
-            'capture', 
-            'diproses', 
-            'dikirim', 
-            'selesai'
-        ];
-
-        $orders = Order::with('items.product')
-                    ->whereIn('status', $validStatuses)
+        // Kita hapus filter status agar SEMUA pesanan muncul di tabel Manajemen Pesanan
+        // Jadi Admin bisa melihat siapa saja yang mencoba memesan tapi belum bayar (pending)
+        $orders = Order::with('items.product', 'user')
                     ->latest()
                     ->paginate(10);
 
@@ -75,11 +66,11 @@ class OrderController extends Controller
     {
         $order = Order::findOrFail($id);
         
-        // Membolehkan konfirmasi jika statusnya 'menunggu verifikasi'
-        $statusBisaDikonfirmasi = ['menunggu verifikasi', 'pembayaran berhasil', 'settlement', 'capture'];
+        // Membolehkan konfirmasi jika statusnya sudah dibayar
+        $statusBisaDikonfirmasi = ['pembayaran berhasil', 'settlement', 'capture', 'menunggu verifikasi'];
         
         if (!in_array($order->status, $statusBisaDikonfirmasi)) {
-            return back()->with('error', 'Pesanan ini tidak dalam status yang bisa dikonfirmasi.');
+            return back()->with('error', 'Pesanan belum dibayar atau sudah diproses.');
         }
 
         $order->update(['status' => 'diproses']);
