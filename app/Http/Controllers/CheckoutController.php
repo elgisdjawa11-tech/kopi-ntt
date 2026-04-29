@@ -9,6 +9,7 @@ use App\Models\Product;
 use Midtrans\Config;
 use Midtrans\Snap;
 use Illuminate\Support\Facades\DB;
+use Exception;
 
 class CheckoutController extends Controller
 {
@@ -20,9 +21,6 @@ class CheckoutController extends Controller
         Config::$is3ds = env('MIDTRANS_IS_3DS');
     }
 
-    /**
-     * 1. Proses Simpan Pesanan (Status Awal: Menunggu Pembayaran)
-     */
     public function process(Request $request)
     {
         $cart = session()->get('cart');
@@ -30,18 +28,16 @@ class CheckoutController extends Controller
 
         $request->validate([
             'nama' => 'required|string|max:255',
-            'alamat' => 'required',
-            'hp' => 'required',
+            'alamat' => 'required|string',
+            'hp' => 'required|numeric|digits_between:10,15',
         ]);
 
-        // CEK STOK
+        // 1. CEK STOK & HITUNG TOTAL
         if ($cart && count($cart) > 0) {
             foreach ($cart as $id => $details) {
                 $product = Product::find($id);
                 if (!$product || $product->stok < $details['quantity']) {
-                    return redirect()->route('cart.index')->with('error', 
-                        "Pesanan ditolak! Stok " . ($product ? $product->nama_kopi : 'Produk') . " tidak cukup."
-                    );
+                    return redirect()->route('cart.index')->with('error', "Stok " . ($product ? $product->nama_kopi : 'Produk') . " tidak cukup.");
                 }
                 $totalHarga += $details['price'] * $details['quantity'];
             }
@@ -52,43 +48,44 @@ class CheckoutController extends Controller
             }
             $totalHarga = $product->harga;
         } else {
-            return redirect()->route('home')->with('error', 'Pesanan tidak valid.');
+            return redirect()->route('home')->with('error', 'Keranjang belanja kosong.');
         }
 
-        return DB::transaction(function () use ($request, $cart, $totalHarga) {
-            /**
-             * LOGIKA REVISI: 
-             * Status awal diubah menjadi 'Menunggu Verifikasi' atau 'Pending'.
-             * Jangan diset 'Pembayaran Berhasil' di sini karena pelanggan belum bayar.
-             */
-            $order = Order::create([
-                'user_id' => auth()->id(),
-                'nama_penerima' => $request->nama,
-                'alamat_pengiriman' => $request->alamat,
-                'nomor_hp' => $request->hp,
-                'total_harga' => $totalHarga,
-                'status' => 'Menunggu Verifikasi' // Berubah dari 'Pembayaran Berhasil'
-            ]);
+        // 2. TRANSAKSI DATABASE
+        try {
+            $order = DB::transaction(function () use ($request, $cart, $totalHarga) {
+                $newOrder = Order::create([
+                    'user_id' => auth()->id(),
+                    'nama_penerima' => $request->nama,
+                    'alamat_pengiriman' => $request->alamat,
+                    'nomor_hp' => $request->hp,
+                    'total_harga' => $totalHarga,
+                    'status' => 'Menunggu Pembayaran' // Sesuai dengan Enum di Migration
+                ]);
 
-            if ($cart && count($cart) > 0) {
-                foreach ($cart as $id => $details) {
+                if ($cart && count($cart) > 0) {
+                    foreach ($cart as $id => $details) {
+                        OrderItem::create([
+                            'order_id'     => $newOrder->id,
+                            'product_id'   => $id,
+                            'jumlah'       => $details['quantity'],
+                            'harga_satuan' => $details['price'], 
+                        ]);
+                    }
+                    session()->forget('cart');
+                } else {
                     OrderItem::create([
-                        'order_id'     => $order->id,
-                        'product_id'   => $id,
-                        'jumlah'       => $details['quantity'],
-                        'harga_satuan' => $details['price'], 
+                        'order_id'     => $newOrder->id,
+                        'product_id'   => $request->product_id,
+                        'jumlah'       => 1,
+                        'harga_satuan' => $totalHarga, 
                     ]);
                 }
-                session()->forget('cart');
-            } else {
-                OrderItem::create([
-                    'order_id'     => $order->id,
-                    'product_id'   => $request->product_id,
-                    'jumlah'       => 1,
-                    'harga_satuan' => $totalHarga, 
-                ]);
-            }
 
+                return $newOrder;
+            });
+
+            // 3. KONFIGURASI MIDTRANS
             $params = [
                 'transaction_details' => [
                     'order_id' => $order->id . '-' . time(), 
@@ -100,20 +97,16 @@ class CheckoutController extends Controller
                 ],
             ];
 
-            try {
-                $snapToken = Snap::getSnapToken($params);
-                $order->update(['snap_token' => $snapToken]);
-                return redirect()->route('pembayaran', $order->id);
-            } catch (\Exception $e) {
-                return back()->with('error', 'Gagal terhubung ke Midtrans: ' . $e->getMessage());
-            }
-        });
+            $snapToken = Snap::getSnapToken($params);
+            $order->update(['snap_token' => $snapToken]);
+
+            return redirect()->route('pembayaran', $order->id);
+
+        } catch (Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
-    /**
-     * 2. Callback Midtrans
-     * HANYA DI SINI status berubah ke "Pembayaran Berhasil" setelah duit masuk.
-     */
     public function callback(Request $request)
     {
         $serverKey = env('MIDTRANS_SERVER_KEY');
@@ -125,25 +118,22 @@ class CheckoutController extends Controller
                 $order = Order::find($order_id);
                 
                 if ($order) {
-                    // BARU DI SINI status berubah, sehingga Admin bisa melihatnya
-                    $order->update(['status' => 'Pembayaran Berhasil']);
+                    // Gunakan 'Diproses' karena ada di Enum Migration kita
+                    $order->update(['status' => 'Diproses']);
                 }
             }
         }
     }
 
-    /**
-     * 3. Selesaikan Pesanan
-     */
     public function completeOrder($id)
     {
         $order = Order::findOrFail($id);
 
         if ($order->status !== 'Selesai') {
             $order->update(['status' => 'Selesai']);
-            return redirect()->back()->with('success', 'Pesanan selesai! Barang telah diterima pelanggan.');
+            return redirect()->back()->with('success', 'Pesanan selesai!');
         }
 
-        return redirect()->back()->with('info', 'Pesanan sudah berstatus selesai.');
+        return redirect()->back()->with('info', 'Pesanan sudah selesai.');
     }
 }
