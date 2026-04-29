@@ -154,13 +154,17 @@
                     <div class="col-md-7">
                         <h3 class="section-title">Detail Pengiriman <br>& Tujuan</h3>
                         
-                        {{-- BAGIAN PESAN ERROR (TAMBAHAN BARU) --}}
-                        @if ($errors->any())
+                        {{-- UPDATE: Kotak Pesan Error Lengkap --}}
+                        @if ($errors->any() || session('error'))
                             <div class="alert alert-danger rounded-4 shadow-sm mb-4">
+                                <h6 class="fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Terjadi Kendala:</h6>
                                 <ul class="mb-0">
                                     @foreach ($errors->all() as $error)
                                         <li>{{ $error }}</li>
                                     @endforeach
+                                    @if(session('error'))
+                                        <li>{{ session('error') }}</li>
+                                    @endif
                                 </ul>
                             </div>
                         @endif
@@ -169,7 +173,9 @@
                             @csrf 
                             
                             @if(!session('cart') || count(session('cart')) == 0)
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                @if(isset($product))
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                @endif
                             @endif
 
                             <div class="mb-4">
@@ -215,7 +221,7 @@
                                             </div>
                                         </div>
                                     @endforeach
-                                @else
+                                @elseif(isset($product))
                                     @php $total = $product->harga @endphp
                                     <div class="d-flex align-items-center mb-4 bg-white p-2 rounded-4 shadow-sm border border-light">
                                         <img src="{{ asset('storage/'.$product->foto) }}" class="rounded-3" style="width: 70px; height: 70px; object-fit: cover;" onerror="this.src='https://via.placeholder.com/70'">
