@@ -47,7 +47,7 @@
         <form action="{{ route('register.post') }}" method="POST">
             @csrf
             
-            {{-- PENTING: Input Hidden untuk mengirimkan Role ke Controller --}}
+            {{-- PENTING: Input Hidden untuk mengirimkan Role ke Controller agar role tersimpan sesuai pilihan --}}
             <input type="hidden" name="role" value="{{ $role ?? 'pelanggan' }}">
             
             {{-- Nama Lengkap --}}

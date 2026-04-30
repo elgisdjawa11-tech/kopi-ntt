@@ -23,6 +23,7 @@
             :root { --accent-coffee: #d4a373; }
             .text-accent { color: var(--accent-coffee); }
             .bg-accent { background-color: var(--accent-coffee); }
+            /* Memastikan Dropdown muncul saat hover untuk UX yang lebih baik */
             .dropdown:hover .dropdown-menu { display: block; }
         </style>
     </head>
@@ -58,19 +59,18 @@
                                 Log in
                             </a>
 
-                            @if (Route::has('register'))
-                                <div class="relative group dropdown">
-                                    <button class="inline-block px-5 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-semibold">
-                                        Register <i class="bi bi-chevron-down text-[10px]"></i>
-                                    </button>
-                                    <div class="absolute right-0 mt-0 w-48 bg-white border shadow-lg rounded-sm hidden dropdown-menu z-50">
-                                        <a href="{{ route('register.pelanggan') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800">Sebagai Pelanggan</a>
-                                        <a href="{{ route('register.pengirim') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Pengirim (Kurir)</a>
-                                        <a href="{{ route('register.admin') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Admin</a>
-                                        <a href="{{ route('register.pemilik') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Pemilik</a>
-                                    </div>
+                            {{-- Dropdown Registrasi Berdasarkan Entitas (Solusi untuk Error Route register not defined) --}}
+                            <div class="relative group dropdown">
+                                <button class="inline-block px-5 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-semibold">
+                                    Register <i class="bi bi-chevron-down text-[10px]"></i>
+                                </button>
+                                <div class="absolute right-0 mt-0 w-48 bg-white border shadow-lg rounded-sm hidden dropdown-menu z-50">
+                                    <a href="{{ route('register.pelanggan') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800">Sebagai Pelanggan</a>
+                                    <a href="{{ route('register.pengirim') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Pengirim (Kurir)</a>
+                                    <a href="{{ route('register.admin') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Admin</a>
+                                    <a href="{{ route('register.pemilik') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Pemilik</a>
                                 </div>
-                            @endif
+                            </div>
                         @endauth
                     </div>
                 </nav>

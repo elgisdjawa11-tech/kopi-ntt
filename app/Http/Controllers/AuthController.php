@@ -12,6 +12,7 @@ class AuthController extends Controller
 {
     /**
      * 1. Menampilkan Halaman Login
+     * Jika user sudah login, langsung diarahkan sesuai rolenya.
      */
     public function showLogin() 
     {
@@ -46,29 +47,31 @@ class AuthController extends Controller
      */
     public function register(Request $request) 
     {
+        // Validasi data input
         $request->validate([
             'name'     => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
             'phone'    => 'required|numeric',
             'city'     => 'required|string|max:255',
             'password' => 'required|string|min:8|confirmed',
-            'role'     => 'required|string' // Memastikan role ikut terkirim dari input hidden
+            'role'     => 'required|string' // Menangkap role dari input hidden di form
         ]);
 
+        // Simpan data user baru ke database
         $user = User::create([
             'name'     => $request->name,
             'username' => $request->username,
             'phone'    => $request->phone,
             'city'     => $request->city,
             'password' => Hash::make($request->password),
-            'role'     => $request->role, // Menyimpan role sesuai rute yang dipilih
+            'role'     => $request->role, // Menyimpan role sesuai parameter dari rute
         ]);
 
-        // Otomatis login setelah daftar
+        // Otomatis login setelah pendaftaran berhasil
         Auth::login($user);
         $request->session()->regenerate();
 
-        // Mengarahkan ke dashboard masing-masing setelah registrasi berhasil
+        // Mengarahkan ke dashboard masing-masing sesuai role
         return $this->redirectUserByRole($user)->with('success', 'Pendaftaran berhasil sebagai ' . $request->role);
     }
 
@@ -82,9 +85,11 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+        // Mencoba melakukan otentikasi
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             
+            // Redirect user berdasarkan perannya
             return $this->redirectUserByRole(Auth::user());
         }
 
@@ -93,6 +98,7 @@ class AuthController extends Controller
 
     /**
      * 5. Helper Fungsi untuk Mengarahkan User sesuai Role
+     * Digunakan untuk menjaga agar setiap user masuk ke dashboard yang benar.
      */
     private function redirectUserByRole($user)
     {
@@ -108,6 +114,7 @@ class AuthController extends Controller
             return redirect()->route('pengirim.index');
         }
 
+        // Default untuk pelanggan atau role lainnya
         return redirect()->route('home');
     }
 
@@ -117,6 +124,8 @@ class AuthController extends Controller
     public function logout(Request $request) 
     {
         Auth::logout();
+        
+        // Menghapus data session untuk keamanan
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         
