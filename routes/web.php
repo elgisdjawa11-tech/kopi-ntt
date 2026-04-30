@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CartController; 
@@ -15,27 +16,35 @@ use App\Http\Controllers\PengirimController;
 |--------------------------------------------------------------------------
 */
 
-// 1. OTENTIKASI & AKSES UMUM
+// 1. RUTE PEMBERSIH CAHE (Gunakan jika error masih muncul di Railway)
+Route::get('/clear-cache', function() {
+    Artisan::call('route:clear');
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    return "Cache Berhasil Dibersihkan! Silakan kembali ke Beranda.";
+});
+
+// 2. OTENTIKASI & AKSES UMUM
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// RUTE REGISTRASI TERPISAH (Agar Judul & Role Berbeda)
+// RUTE REGISTRASI TERPISAH
 Route::get('/register/pelanggan', [AuthController::class, 'regPelanggan'])->name('register.pelanggan');
 Route::get('/register/pengirim', [AuthController::class, 'regPengirim'])->name('register.pengirim');
 Route::get('/register/admin', [AuthController::class, 'regAdmin'])->name('register.admin');
 Route::get('/register/pemilik', [AuthController::class, 'regPemilik'])->name('register.pemilik');
 
-// Proses Registrasi Tunggal (Menggunakan Input Hidden 'role' di View)
+// Proses Registrasi Tunggal
 Route::post('/register/proses', [AuthController::class, 'register'])->name('register.post');
 
-// MIDTRANS CALLBACK (Khusus untuk komunikasi server-ke-server)
+// MIDTRANS CALLBACK
 Route::post('/midtrans-callback', [CheckoutController::class, 'callback'])->name('midtrans.callback');
 
 // CATALOG & HOME
 Route::get('/', [ProductController::class, 'index'])->name('home');
 
-// 2. ENTITAS PELANGGAN (Wajib Login)
+// 3. ENTITAS PELANGGAN (Wajib Login)
 Route::middleware(['auth'])->group(function() {
     
     // Keranjang
@@ -50,18 +59,18 @@ Route::middleware(['auth'])->group(function() {
     Route::post('/checkout/proses', [CheckoutController::class, 'process'])->name('checkout.process');
     Route::get('/pembayaran/{id}', [CheckoutController::class, 'pembayaran'])->name('pembayaran');
 
-    // Riwayat & Lacak Pesanan (Dipindah ke dalam Auth agar tidak muncul sembarangan)
+    // Riwayat & Lacak Pesanan
     Route::get('/riwayat-pesanan', [ProductController::class, 'riwayatPesanan'])->name('riwayat.pesanan');
     Route::get('/pesanan/lacak/{id}', [ProductController::class, 'riwayat'])->name('pesanan.lacak');
 });
 
-// 3. ENTITAS PENGIRIM (KURIR)
+// 4. ENTITAS PENGIRIM (KURIR)
 Route::middleware(['auth', 'role:pengirim'])->prefix('pengirim')->name('pengirim.')->group(function() {
     Route::get('/dashboard', [PengirimController::class, 'index'])->name('index');
     Route::post('/konfirmasi/{id}', [PengirimController::class, 'konfirmasiTiba'])->name('konfirmasi');
 });
 
-// 4. ENTITAS ADMIN & PEMILIK
+// 5. ENTITAS ADMIN & PEMILIK
 Route::middleware(['auth', 'role:admin,pemilik'])->prefix('admin')->name('admin.')->group(function() {
     
     // Dashboard & Order Management
@@ -69,7 +78,7 @@ Route::middleware(['auth', 'role:admin,pemilik'])->prefix('admin')->name('admin.
     Route::get('/orders', [OrderController::class, 'listOrders'])->name('orders.index');
     Route::get('/orders/show/{id}', [OrderController::class, 'show'])->name('orders.show');
     
-    // FITUR UTAMA: Cek Status Pembayaran Manual ke Midtrans
+    // Fitur Cek Status Pembayaran Manual
     Route::get('/orders/{id}/cek-status', [OrderController::class, 'cekStatusPembayaran'])->name('orders.cek-status');
 
     // Alur Bisnis
@@ -88,3 +97,11 @@ Route::middleware(['auth', 'role:admin,pemilik'])->prefix('admin')->name('admin.
 
     Route::resource('products', ProductManagementController::class);
 });
+
+// =========================================================================
+// SOLUSI PERMANEN: Rute Cadangan agar tidak terjadi error Route [register] 
+// Jika ada bagian kode lama yang memanggil route('register'), akan dilempar ke sini.
+// =========================================================================
+Route::get('/register', function() {
+    return redirect()->route('register.pelanggan');
+})->name('register');
