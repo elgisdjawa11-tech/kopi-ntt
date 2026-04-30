@@ -12,7 +12,6 @@ class AuthController extends Controller
 {
     /**
      * 1. Menampilkan Halaman Login
-     * Jika user sudah login, langsung diarahkan sesuai rolenya.
      */
     public function showLogin() 
     {
@@ -23,21 +22,27 @@ class AuthController extends Controller
     }
 
     /**
-     * 2. Menampilkan Halaman Registrasi Pelanggan
-     * CATATAN: Jika kamu tidak bisa melihat halaman registrasi,
-     * pastikan kamu sudah LOGOUT terlebih dahulu.
+     * 2. Menampilkan Halaman Registrasi Dinamis
+     * Fungsi-fungsi ini mengirimkan data 'role' dan 'title' ke satu file view yang sama.
      */
-    public function showRegister() 
-    {
-        // Logika ini yang membuat halaman registrasi "hilang" jika kamu sudah login
-        if (Auth::check()) {
-            return redirect()->route('home');
-        }
-        return view('register');
+    public function regPelanggan() {
+        return view('register', ['role' => 'pelanggan', 'title' => 'Pelanggan']);
+    }
+
+    public function regPengirim() {
+        return view('register', ['role' => 'pengirim', 'title' => 'Pengirim (Kurir)']);
+    }
+
+    public function regAdmin() {
+        return view('register', ['role' => 'admin', 'title' => 'Administrator']);
+    }
+
+    public function regPemilik() {
+        return view('register', ['role' => 'pemilik', 'title' => 'Pemilik Toko']);
     }
 
     /**
-     * 3. Proses Registrasi Pelanggan Baru
+     * 3. Proses Registrasi User Baru (Berlaku untuk semua role)
      */
     public function register(Request $request) 
     {
@@ -47,6 +52,7 @@ class AuthController extends Controller
             'phone'    => 'required|numeric',
             'city'     => 'required|string|max:255',
             'password' => 'required|string|min:8|confirmed',
+            'role'     => 'required|string' // Memastikan role ikut terkirim dari input hidden
         ]);
 
         $user = User::create([
@@ -55,14 +61,15 @@ class AuthController extends Controller
             'phone'    => $request->phone,
             'city'     => $request->city,
             'password' => Hash::make($request->password),
-            'role'     => 'pelanggan', // Default role untuk pendaftar baru
+            'role'     => $request->role, // Menyimpan role sesuai rute yang dipilih
         ]);
 
         // Otomatis login setelah daftar
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('home')->with('success', 'Pendaftaran berhasil! Selamat datang di Kopi NTT.');
+        // Mengarahkan ke dashboard masing-masing setelah registrasi berhasil
+        return $this->redirectUserByRole($user)->with('success', 'Pendaftaran berhasil sebagai ' . $request->role);
     }
 
     /**
@@ -78,7 +85,6 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             
-            // Redirect user berdasarkan rolenya di database
             return $this->redirectUserByRole(Auth::user());
         }
 
@@ -87,7 +93,6 @@ class AuthController extends Controller
 
     /**
      * 5. Helper Fungsi untuk Mengarahkan User sesuai Role
-     * Memastikan Admin, Pemilik, dan Kurir masuk ke pintu yang benar.
      */
     private function redirectUserByRole($user)
     {
@@ -103,7 +108,6 @@ class AuthController extends Controller
             return redirect()->route('pengirim.index');
         }
 
-        // Jika role pelanggan atau lainnya, lempar ke home
         return redirect()->route('home');
     }
 
@@ -113,11 +117,9 @@ class AuthController extends Controller
     public function logout(Request $request) 
     {
         Auth::logout();
-        
-        // Bersihkan session agar tidak ada data yang nyangkut
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         
-        return redirect()->route('login')->with('success', 'Anda telah berhasil keluar dari sistem.');
+        return redirect()->route('login')->with('success', 'Anda telah berhasil keluar.');
     }
 }

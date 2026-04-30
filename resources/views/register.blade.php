@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Pelanggan | Kopi NTT</title>
+    {{-- Judul Browser Dinamis --}}
+    <title>Daftar {{ $title ?? 'Pelanggan' }} | Kopi NTT</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -28,8 +29,9 @@
 
     <div class="register-card">
         <div class="text-center mb-4">
-            <h3 class="fw-bold">Buat Akun <span style="color: #d4a373">Pelanggan</span></h3>
-            <p class="text-muted small">Daftar untuk mulai belanja kopi terbaik NTT</p>
+            {{-- UPDATE: Judul Dinamis berdasarkan Role --}}
+            <h3 class="fw-bold">Buat Akun <span style="color: #d4a373">{{ $title ?? 'Pelanggan' }}</span></h3>
+            <p class="text-muted small">Daftar untuk akses sistem Kopi NTT</p>
         </div>
 
         @if($errors->any())
@@ -45,10 +47,13 @@
         <form action="{{ route('register.post') }}" method="POST">
             @csrf
             
+            {{-- PENTING: Input Hidden untuk mengirimkan Role ke Controller --}}
+            <input type="hidden" name="role" value="{{ $role ?? 'pelanggan' }}">
+            
             {{-- Nama Lengkap --}}
             <div class="mb-2">
                 <label class="form-label small fw-bold">Nama Lengkap</label>
-                <input type="text" name="name" class="form-control" placeholder="Masukkan nama Anda" value="{{ old('name') }}" required>
+                <input type="text" name="name" class="form-control" placeholder="Masukkan nama lengkap" value="{{ old('name') }}" required>
             </div>
 
             {{-- Username --}}
@@ -57,13 +62,13 @@
                 <input type="text" name="username" class="form-control" placeholder="Buat username unik" value="{{ old('username') }}" required>
             </div>
 
-            {{-- UPDATE REVISI: Nomor WhatsApp --}}
+            {{-- Nomor WhatsApp --}}
             <div class="mb-2">
                 <label class="form-label small fw-bold">Nomor WhatsApp</label>
                 <input type="number" name="phone" class="form-control" placeholder="Contoh: 08123456789" value="{{ old('phone') }}" required>
             </div>
 
-            {{-- UPDATE REVISI: Kota Asal --}}
+            {{-- Kota Asal --}}
             <div class="mb-3">
                 <label class="form-label small fw-bold">Kota / Alamat</label>
                 <input type="text" name="city" class="form-control" placeholder="Contoh: Kupang, NTT" value="{{ old('city') }}" required>

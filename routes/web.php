@@ -8,8 +8,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\OrderController; 
 use App\Http\Controllers\Admin\ProductManagementController;
 use App\Http\Controllers\PengirimController;
-use App\Models\Product;
-use App\Models\Order;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,11 +18,18 @@ use App\Models\Order;
 // 1. OTENTIKASI & AKSES UMUM
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// MIDTRANS CALLBACK (Wajib di luar middleware auth agar bisa diakses server Midtrans)
+// RUTE REGISTRASI TERPISAH (Agar Judul & Role Berbeda)
+Route::get('/register/pelanggan', [AuthController::class, 'regPelanggan'])->name('register.pelanggan');
+Route::get('/register/pengirim', [AuthController::class, 'regPengirim'])->name('register.pengirim');
+Route::get('/register/admin', [AuthController::class, 'regAdmin'])->name('register.admin');
+Route::get('/register/pemilik', [AuthController::class, 'regPemilik'])->name('register.pemilik');
+
+// Proses Registrasi Tunggal (Menggunakan Input Hidden 'role' di View)
+Route::post('/register/proses', [AuthController::class, 'register'])->name('register.post');
+
+// MIDTRANS CALLBACK (Khusus untuk komunikasi server-ke-server)
 Route::post('/midtrans-callback', [CheckoutController::class, 'callback'])->name('midtrans.callback');
 
 // CATALOG & HOME
@@ -40,19 +45,15 @@ Route::middleware(['auth'])->group(function() {
         Route::delete('/hapus/{id}', [CartController::class, 'remove'])->name('remove'); 
     });
 
-    // Checkout & Pengiriman (Pindahkan ke Controller agar rapi)
+    // Checkout & Pembayaran
     Route::get('/checkout/pengiriman/{id}', [CheckoutController::class, 'showPengiriman'])->name('checkout.pengiriman');
     Route::post('/checkout/proses', [CheckoutController::class, 'process'])->name('checkout.process');
-    
-    // Pembayaran
     Route::get('/pembayaran/{id}', [CheckoutController::class, 'pembayaran'])->name('pembayaran');
 
-    // Riwayat Belanja User
+    // Riwayat & Lacak Pesanan (Dipindah ke dalam Auth agar tidak muncul sembarangan)
     Route::get('/riwayat-pesanan', [ProductController::class, 'riwayatPesanan'])->name('riwayat.pesanan');
+    Route::get('/pesanan/lacak/{id}', [ProductController::class, 'riwayat'])->name('pesanan.lacak');
 });
-
-// Lacak Pesanan (Akses Publik)
-Route::get('/pesanan/lacak/{id}', [ProductController::class, 'riwayat'])->name('pesanan.lacak');
 
 // 3. ENTITAS PENGIRIM (KURIR)
 Route::middleware(['auth', 'role:pengirim'])->prefix('pengirim')->name('pengirim.')->group(function() {
@@ -68,22 +69,14 @@ Route::middleware(['auth', 'role:admin,pemilik'])->prefix('admin')->name('admin.
     Route::get('/orders', [OrderController::class, 'listOrders'])->name('orders.index');
     Route::get('/orders/show/{id}', [OrderController::class, 'show'])->name('orders.show');
     
-    // Update Status Manual
-    Route::match(['get', 'post'], '/orders/update/{id}/{status}', [OrderController::class, 'updateStatus'])->name('orders.update');
+    // FITUR UTAMA: Cek Status Pembayaran Manual ke Midtrans
+    Route::get('/orders/{id}/cek-status', [OrderController::class, 'cekStatusPembayaran'])->name('orders.cek-status');
 
     // Alur Bisnis
     Route::post('/orders/{id}/konfirmasi', [OrderController::class, 'konfirmasiPembayaran'])->name('orders.konfirmasi');
     Route::post('/orders/{id}/kirim', [OrderController::class, 'kirimBarang'])->name('orders.kirim');
     Route::post('/orders/{id}/upload-bukti', [OrderController::class, 'uploadBukti'])->name('orders.uploadBukti');
-
-    // FITUR CEK PESANAN BARU (UPDATE STATUS KE 'Diproses')
-    Route::get('/check-new-orders', function() {
-        // Cek pesanan yang statusnya 'Diproses' (sudah dibayar via Midtrans) dalam 2 menit terakhir
-        $newOrder = Order::where('status', 'Diproses')
-                    ->where('updated_at', '>=', now()->subMinutes(2))
-                    ->exists();
-        return response()->json(['new_order' => $newOrder]);
-    })->name('check_orders');
+    Route::match(['get', 'post'], '/orders/update/{id}/{status}', [OrderController::class, 'updateStatus'])->name('orders.update');
 
     // Laporan Bisnis
     Route::prefix('laporan')->name('laporan.')->group(function() {
@@ -92,10 +85,6 @@ Route::middleware(['auth', 'role:admin,pemilik'])->prefix('admin')->name('admin.
         Route::get('/pelanggan', [OrderController::class, 'laporanPelanggan'])->name('pelanggan');
         Route::get('/pdf', [OrderController::class, 'exportLaporanPDF'])->name('pdf');
     });
-
-    Route::get('/redirect-laporan', function() {
-        return redirect()->route('admin.laporan.penjualan');
-    })->name('laporan_redirect');
 
     Route::resource('products', ProductManagementController::class);
 });
