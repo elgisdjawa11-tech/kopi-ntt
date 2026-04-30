@@ -10,7 +10,7 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
         <!-- Bootstrap Icons untuk Icon Checklist -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-        <!-- Flowbite/Bootstrap JS untuk Dropdown -->
+        <!-- Bootstrap JS untuk Dropdown -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
@@ -23,8 +23,10 @@
             :root { --accent-coffee: #d4a373; }
             .text-accent { color: var(--accent-coffee); }
             .bg-accent { background-color: var(--accent-coffee); }
-            /* Memastikan Dropdown muncul saat hover untuk UX yang lebih baik */
-            .dropdown:hover .dropdown-menu { display: block; }
+            /* UX: Dropdown muncul saat hover di desktop */
+            @media (min-width: 1024px) {
+                .dropdown:hover .dropdown-menu { display: block; margin-top: 0; }
+            }
         </style>
     </head>
     <body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] flex p-6 lg:p-8 items-center lg:justify-center min-h-screen flex-col">
@@ -36,7 +38,17 @@
                     <div class="fw-bold text-lg font-semibold tracking-tight uppercase">
                         KOPI <span class="text-accent">NTT</span>
                     </div>
+
                     <div class="flex items-center gap-4">
+                        {{-- MENU TENGAH (Katalog & Lacak) --}}
+                        <div class="hidden md:flex gap-4 mr-4">
+                            <a href="/" class="hover:text-accent transition">Katalog Produk</a>
+                            @auth
+                                {{-- Lacak Pesanan HANYA muncul jika sudah LOGIN --}}
+                                <a href="{{ route('riwayat.pesanan') }}" class="hover:text-accent transition">Lacak Pesanan</a>
+                            @endauth
+                        </div>
+
                         @auth
                             {{-- TAMPILAN JIKA SUDAH LOGIN --}}
                             <div class="flex gap-2">
@@ -59,18 +71,22 @@
                                 Log in
                             </a>
 
-                            {{-- Dropdown Registrasi Berdasarkan Entitas (Solusi untuk Error Route register not defined) --}}
-                            <div class="relative group dropdown">
-                                <button class="inline-block px-5 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-semibold">
-                                    Register <i class="bi bi-chevron-down text-[10px]"></i>
-                                </button>
-                                <div class="absolute right-0 mt-0 w-48 bg-white border shadow-lg rounded-sm hidden dropdown-menu z-50">
-                                    <a href="{{ route('register.pelanggan') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800">Sebagai Pelanggan</a>
-                                    <a href="{{ route('register.pengirim') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Pengirim (Kurir)</a>
-                                    <a href="{{ route('register.admin') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Admin</a>
-                                    <a href="{{ route('register.pemilik') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Pemilik</a>
+                            @if (Route::has('register'))
+                                <div class="relative group dropdown">
+                                    <button class="inline-block px-5 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-semibold dropdown-toggle" data-bs-toggle="dropdown">
+                                        Registrasi
+                                    </button>
+                                    <div class="absolute right-0 mt-0 w-48 bg-white border shadow-lg rounded-sm hidden dropdown-menu z-50">
+                                        <a href="{{ route('register.pelanggan') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800">Sebagai Pelanggan</a>
+                                        <a href="{{ route('register.pengirim') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Pengirim (Kurir)</a>
+                                        <a href="{{ route('register.admin') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Admin</a>
+                                        <a href="{{ route('register.pemilik') }}" class="block px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 border-t">Sebagai Pemilik</a>
+                                        {{-- Jalur Cadangan untuk menghindari error Route [register] not defined --}}
+                                        <hr class="my-1">
+                                        <a href="{{ route('register') }}" class="hidden"></a>
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         @endauth
                     </div>
                 </nav>
