@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{-- Judul Browser Dinamis --}}
-    <title>Daftar {{ $title ?? 'Pelanggan' }} | Kopi NTT</title>
+    {{-- Judul Browser Umum --}}
+    <title>Registrasi Akun Baru | Kopi NTT</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1500');
+            background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=2000');
             background-size: cover; background-position: center;
             min-height: 100vh; display: flex; align-items: center; justify-content: center;
             padding: 20px 0;
         }
         .register-card {
             background: white; border-radius: 20px; padding: 40px;
-            width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            width: 100%; max-width: 450px; box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            border-top: 5px solid #c5a059;
         }
-        .btn-coffee { background: #3e2723; color: white; border-radius: 50px; padding: 10px; transition: 0.3s; border: none; }
-        .btn-coffee:hover { background: #d4a373; color: white; }
+        .btn-coffee { background: #1a392a; color: white; border-radius: 50px; padding: 12px; transition: 0.3s; border: 1px solid #c5a059; }
+        .btn-coffee:hover { background: #c5a059; color: #1a392a; transform: translateY(-2px); }
         .form-control { border-radius: 10px; padding: 10px; font-size: 0.9rem; }
         .form-label { margin-bottom: 0.3rem; }
     </style>
@@ -29,9 +30,9 @@
 
     <div class="register-card">
         <div class="text-center mb-4">
-            {{-- UPDATE: Judul Dinamis berdasarkan Role --}}
-            <h3 class="fw-bold">Buat Akun <span style="color: #d4a373">{{ $title ?? 'Pelanggan' }}</span></h3>
-            <p class="text-muted small">Daftar untuk akses sistem Kopi NTT</p>
+            {{-- Judul Seragam untuk Semua Role --}}
+            <h3 class="fw-bold">Registrasi <span style="color: #c5a059">Akun Baru</span></h3>
+            <p class="text-muted small">Silakan lengkapi data diri Anda di bawah ini</p>
         </div>
 
         @if($errors->any())
@@ -47,7 +48,7 @@
         <form action="{{ route('register.post') }}" method="POST">
             @csrf
             
-            {{-- PENTING: Input Hidden untuk mengirimkan Role ke Controller agar role tersimpan sesuai pilihan --}}
+            {{-- PENTING: Input Hidden tetap mengirimkan Role agar sistem tidak bingung --}}
             <input type="hidden" name="role" value="{{ $role ?? 'pelanggan' }}">
             
             {{-- Nama Lengkap --}}
@@ -91,7 +92,7 @@
             <button type="submit" class="btn btn-coffee w-100 fw-bold shadow-sm">DAFTAR SEKARANG</button>
             
             <div class="text-center mt-3">
-                <p class="small">Sudah punya akun? <a href="{{ route('login') }}" class="text-decoration-none fw-bold" style="color: #3e2723;">Masuk di sini</a></p>
+                <p class="small">Sudah punya akun? <a href="{{ route('login') }}" class="text-decoration-none fw-bold" style="color: #1a392a;">Masuk di sini</a></p>
             </div>
         </form>
     </div>

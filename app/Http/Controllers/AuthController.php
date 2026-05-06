@@ -103,7 +103,7 @@ class AuthController extends Controller
     private function redirectUserByRole($user)
     {
         if ($user->role === 'pemilik') {
-            return redirect()->route('admin.laporan.penjualan');
+            return redirect()->route('admin.pemilik.dashboard');
         }
 
         if ($user->role === 'admin') {

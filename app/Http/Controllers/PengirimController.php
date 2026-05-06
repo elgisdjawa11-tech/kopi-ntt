@@ -17,14 +17,33 @@ class PengirimController extends Controller
      */
     public function index()
     {
-        // Mengambil pesanan dengan status 'Dikirim'
-        // Status ini diset oleh Admin saat barang keluar gudang
+        // Mengambil pesanan dengan status 'Dikirim' (Tugas Aktif)
         $orders = Order::with('items.product')
-                    ->where('status', 'Dikirim')
+                    ->where('status', 'dikirim')
                     ->latest()
                     ->get();
 
-        return view('pengirim.index', compact('orders'));
+        // Statistik untuk Dashboard Kurir
+        $stats = [
+            'total_tugas' => $orders->count(),
+            'tugas_selesai' => Order::where('status', 'selesai')->count()
+        ];
+
+        return view('pengirim.index', compact('orders', 'stats'));
+    }
+
+    /**
+     * 3. Riwayat Pengiriman
+     * Menampilkan daftar pesanan yang sudah sukses diantar (Status Selesai).
+     */
+    public function history()
+    {
+        $orders = Order::with('items.product')
+                    ->where('status', 'selesai')
+                    ->latest()
+                    ->paginate(10);
+
+        return view('pengirim.history', compact('orders'));
     }
 
     /**
@@ -34,7 +53,7 @@ class PengirimController extends Controller
      */
     public function konfirmasiTiba(Request $request, $id)
     {
-        // Validasi unggah foto sebagai bukti barang sampai di lokasi
+        // Validasi: Wajib mengunggah foto bukti penerimaan barang
         $request->validate([
             'bukti_foto' => 'required|image|mimes:jpg,png,jpeg|max:2048'
         ], [
@@ -46,19 +65,15 @@ class PengirimController extends Controller
         try {
             DB::transaction(function () use ($request, $order) {
                 if ($request->hasFile('bukti_foto')) {
-                    // 1. Hapus foto lama jika ada untuk menghemat ruang penyimpanan
+                    // Hapus foto lama jika ada
                     if ($order->foto_penerimaan) {
                         Storage::disk('public')->delete($order->foto_penerimaan);
                     }
 
-                    // 2. Simpan foto bukti baru
+                    // Simpan foto bukti baru
                     $path = $request->file('bukti_foto')->store('bukti_penerimaan', 'public');
                     
-                    /**
-                     * 3. Update status jadi 'Selesai'
-                     * LOGIKA REVISI: Begitu status 'Selesai', barulah Admin bisa melihat 
-                     * transaksi ini di Laporan Penjualan dan total pendapatan akan bertambah.
-                     */
+                    // Update status jadi 'Selesai'
                     $order->update([
                         'foto_penerimaan' => $path,
                         'status' => 'Selesai' 
@@ -66,7 +81,7 @@ class PengirimController extends Controller
                 }
             });
 
-            return back()->with('success', 'Pesanan #ORD-'.$id.' berhasil diselesaikan. Data sudah masuk ke laporan penjualan admin!');
+            return back()->with('success', 'Pesanan #ORD-'.$id.' berhasil diselesaikan. Bukti foto telah tersimpan!');
 
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());

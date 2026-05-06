@@ -90,22 +90,22 @@
                 <div class="timeline">
                     {{-- LOGIKA TINGGI GARIS EMAS --}}
                     <div class="timeline-line-active" style="height: 
-                        @if($order->status == 'Selesai') 100% 
-                        @elseif($order->status == 'Dikirim') 60% 
-                        @elseif($order->status == 'Diproses') 15%
+                        @if($order->status == 'selesai') 100% 
+                        @elseif($order->status == 'dikirim') 60% 
+                        @elseif($order->status == 'diproses') 15%
                         @else 0% @endif;">
                     </div>
 
                     {{-- TAHAP 1: PESANAN DIPROSES --}}
                     {{-- Aktif saat: Pembayaran Berhasil ATAU Diproses ATAU Dikirim ATAU Selesai --}}
-                    <div class="timeline-item {{ in_array($order->status, ['Pembayaran Berhasil', 'Diproses', 'Dikirim', 'Selesai']) ? 'active' : '' }}">
+                    <div class="timeline-item {{ in_array($order->status, ['pembayaran berhasil', 'diproses', 'dikirim', 'selesai']) ? 'active' : '' }}">
                         <div class="timeline-icon">
                             <i class="bi bi-box-seam-fill"></i>
                         </div>
                         <div class="timeline-content">
                             <h6>Pesanan Diproses</h6>
                             <p class="mb-0">
-                                @if($order->status == 'Pembayaran Berhasil')
+                                @if($order->status == 'pembayaran berhasil')
                                     Pembayaran tervalidasi! Pesanan masuk antrean pengemasan.
                                 @else
                                     Tim kami sedang menyiapkan dan mengemas biji kopi pilihanmu dengan teliti.
@@ -116,7 +116,7 @@
 
                     {{-- TAHAP 2: PESANAN DIKIRIM --}}
                     {{-- Aktif saat: Dikirim ATAU Selesai --}}
-                    <div class="timeline-item {{ in_array($order->status, ['Dikirim', 'Selesai']) ? 'active' : '' }}">
+                    <div class="timeline-item {{ in_array($order->status, ['dikirim', 'selesai']) ? 'active' : '' }}">
                         <div class="timeline-icon">
                             <i class="bi bi-truck"></i>
                         </div>
@@ -128,7 +128,7 @@
 
                     {{-- TAHAP 3: PESANAN TIBA --}}
                     {{-- Aktif saat: Selesai --}}
-                    <div class="timeline-item {{ $order->status == 'Selesai' ? 'active' : '' }}">
+                    <div class="timeline-item {{ $order->status == 'selesai' ? 'active' : '' }}">
                         <div class="timeline-icon">
                             <i class="bi bi-check-circle-fill"></i>
                         </div>

@@ -26,18 +26,34 @@ class OrderController extends Controller
         
         $stats = [
             'total_masuk'  => Order::whereIn('status', $this->validStatuses)->count(),
-            'perlu_proses' => Order::whereIn('status', ['menunggu verifikasi', 'diproses'])->count(),
+            'perlu_proses' => Order::whereIn('status', ['pembayaran berhasil', 'menunggu verifikasi', 'diproses'])->count(),
             'pendapatan'   => Order::where('status', 'selesai')->sum('total_harga') ?? 0,
         ];
 
         return view('admin.dashboard', compact('orders', 'stats'));
     }
 
+    /**
+     * Dashboard Utama Khusus Pemilik (Owner)
+     */
+    public function ownerDashboard()
+    {
+        $stats = [
+            'total_omzet'   => Order::where('status', 'selesai')->sum('total_harga'),
+            'total_pesanan' => Order::where('status', 'selesai')->count(),
+            'total_produk'  => Product::count(),
+            'total_user'    => User::where('role', 'pelanggan')->count(),
+            'transaksi_baru' => Order::latest()->take(5)->get()
+        ];
+
+        return view('admin.dashboard_pemilik', compact('stats'));
+    }
+
     public function listOrders()
     {
-        // Untuk Manajemen Pesanan, kita tampilkan 'pending' hanya jika Admin mau cek status, 
-        // tapi secara default kita filter agar Admin fokus pada yang sudah bayar.
+        // Filter agar pesanan yang gagal (expire, cancel, deny, failure) tidak muncul di daftar kerja Admin
         $orders = Order::with('items.product', 'user')
+                    ->whereNotIn('status', ['expire', 'cancel', 'deny', 'failure'])
                     ->latest()
                     ->paginate(10);
 
@@ -47,15 +63,19 @@ class OrderController extends Controller
     public function cekStatusPembayaran($id)
     {
         $order = Order::findOrFail($id);
-        \Midtrans\Config::$serverKey = config('midtrans.server_key');
-        \Midtrans\Config::$isProduction = config('midtrans.is_production');
+        
+        \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        \Midtrans\Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
+
+        // Gunakan midtrans_id yang tersimpan, jika tidak ada baru gunakan ID utama
+        $midtransId = $order->midtrans_id ?? $order->id;
 
         try {
-            $status = \Midtrans\Transaction::status($order->id);
+            $status = \Midtrans\Transaction::status($midtransId);
             
             if ($status->transaction_status == 'settlement' || $status->transaction_status == 'capture') {
-                $order->update(['status' => 'pembayaran berhasil']);
-                return back()->with('success', 'Pembayaran Lunas! Data sudah masuk ke laporan.');
+                $order->update(['status' => 'menunggu verifikasi']);
+                return back()->with('success', 'Pembayaran Lunas! Silakan klik Konfirmasi untuk memproses.');
             }
             return back()->with('info', 'Status di Midtrans: ' . $status->transaction_status);
         } catch (\Exception $e) {
@@ -76,14 +96,25 @@ class OrderController extends Controller
     public function kirimBarang($id)
     {
         $order = Order::findOrFail($id);
-        if ($order->status !== 'diproses') return back()->with('error', 'Belum dikonfirmasi.');
+        
+        // Cek apakah status sudah 'dikirim' untuk mencegah pengurangan stok ganda
+        if ($order->status === 'dikirim') {
+            return back()->with('info', 'Pesanan ini sudah dikirim sebelumnya.');
+        }
+
+        if ($order->status !== 'diproses') {
+            return back()->with('error', 'Pesanan harus dalam status "diproses" sebelum dikirim.');
+        }
 
         DB::transaction(function () use ($order) {
             foreach ($order->items as $item) {
-                if ($item->product) $item->product->decrement('stok', $item->jumlah);
+                if ($item->product) {
+                    $item->product->decrement('stok', $item->jumlah);
+                }
             }
             $order->update(['status' => 'dikirim']);
         });
+
         return back()->with('success', 'Barang dikirim ke kurir.');
     }
 
@@ -107,27 +138,59 @@ class OrderController extends Controller
     public function laporanPenjualan(Request $request)
     {
         $query = Order::where('status', 'selesai'); 
+
+        // Filter Rentang Tanggal
         if ($request->filled('tgl_mulai') && $request->filled('tgl_selesai')) {
             $query->whereBetween('updated_at', [$request->tgl_mulai . ' 00:00:00', $request->tgl_selesai . ' 23:59:59']);
         }
+
+        // Filter Bulan & Tahun
+        if ($request->filled('bulan')) {
+            $query->whereMonth('updated_at', $request->bulan);
+        }
+        if ($request->filled('tahun')) {
+            $query->whereYear('updated_at', $request->tahun);
+        }
+
         $orders = $query->latest('updated_at')->get();
-        return view('admin.laporan.penjualan', [
-            'orders' => $orders,
-            'totalPendapatan' => $orders->sum('total_harga'),
-            'jumlahSelesai' => $orders->count(),
-            'rataRata' => $orders->count() > 0 ? $orders->sum('total_harga') / $orders->count() : 0
-        ]);
+        
+        $totalPendapatan = $orders->sum('total_harga');
+        $jumlahSelesai = $orders->count();
+        $rataRata = $jumlahSelesai > 0 ? $totalPendapatan / $jumlahSelesai : 0;
+
+        return view('admin.laporan.penjualan', compact('orders', 'totalPendapatan', 'jumlahSelesai', 'rataRata'));
     }
 
     public function exportLaporanPDF(Request $request)
     {
-        $orders = Order::where('status', 'selesai')->latest('updated_at')->get();
+        $query = Order::where('status', 'selesai'); 
+
+        // Filter yang sama dengan tampilan web
+        if ($request->filled('tgl_mulai') && $request->filled('tgl_selesai')) {
+            $query->whereBetween('updated_at', [$request->tgl_mulai . ' 00:00:00', $request->tgl_selesai . ' 23:59:59']);
+        }
+        if ($request->filled('bulan')) {
+            $query->whereMonth('updated_at', $request->bulan);
+        }
+        if ($request->filled('tahun')) {
+            $query->whereYear('updated_at', $request->tahun);
+        }
+
+        $orders = $query->latest('updated_at')->get();
+        
+        $totalPendapatan = $orders->sum('total_harga');
+        $jumlahSelesai = $orders->count();
+        $rataRata = $jumlahSelesai > 0 ? $totalPendapatan / $jumlahSelesai : 0;
+
         $pdf = Pdf::loadView('admin.pdf.laporan_bisnis', [
             'orders' => $orders,
-            'totalPendapatan' => $orders->sum('total_harga'),
+            'totalPendapatan' => $totalPendapatan,
+            'jumlahSelesai' => $jumlahSelesai,
+            'rataRata' => $rataRata,
             'periode' => 'Laporan Penjualan'
         ]);
-        return $pdf->download('Laporan-Kopi-NTT.pdf');
+
+        return $pdf->download('Laporan-Penjualan-Kopi-NTT.pdf');
     }
 
     public function show($id) {

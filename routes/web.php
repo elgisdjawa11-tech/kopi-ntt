@@ -31,6 +31,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // RUTE REGISTRASI TERPISAH
 Route::get('/register/pelanggan', [AuthController::class, 'regPelanggan'])->name('register.pelanggan');
+
+require __DIR__.'/fix.php';
 Route::get('/register/pengirim', [AuthController::class, 'regPengirim'])->name('register.pengirim');
 Route::get('/register/admin', [AuthController::class, 'regAdmin'])->name('register.admin');
 Route::get('/register/pemilik', [AuthController::class, 'regPemilik'])->name('register.pemilik');
@@ -67,16 +69,22 @@ Route::middleware(['auth'])->group(function() {
 // 4. ENTITAS PENGIRIM (KURIR)
 Route::middleware(['auth', 'role:pengirim'])->prefix('pengirim')->name('pengirim.')->group(function() {
     Route::get('/dashboard', [PengirimController::class, 'index'])->name('index');
+    Route::get('/riwayat', [PengirimController::class, 'history'])->name('history');
     Route::post('/konfirmasi/{id}', [PengirimController::class, 'konfirmasiTiba'])->name('konfirmasi');
 });
 
 // 5. ENTITAS ADMIN & PEMILIK
 Route::middleware(['auth', 'role:admin,pemilik'])->prefix('admin')->name('admin.')->group(function() {
     
+    // Dashboard Utama Pemilik (Owner)
+    Route::get('/pemilik/dashboard', [OrderController::class, 'ownerDashboard'])->name('pemilik.dashboard');
+
     // Dashboard & Order Management
     Route::get('/dashboard', [OrderController::class, 'index'])->name('dashboard');
     Route::get('/orders', [OrderController::class, 'listOrders'])->name('orders.index');
     Route::get('/orders/show/{id}', [OrderController::class, 'show'])->name('orders.show');
+
+    Route::get('/orders/check', [OrderController::class, 'listOrders'])->name('check_orders');
     
     // Fitur Cek Status Pembayaran Manual
     Route::get('/orders/{id}/cek-status', [OrderController::class, 'cekStatusPembayaran'])->name('orders.cek-status');

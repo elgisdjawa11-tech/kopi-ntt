@@ -19,7 +19,11 @@ class Order extends Model
         'status', 
         'alamat_pengiriman',
         'nomor_hp',
-        'snap_token' // Penting untuk Midtrans
+        'snap_token',
+        'midtrans_id',
+        'foto_penerimaan',
+        'ongkir',
+        'kabupaten'
     ];
 
     /**

@@ -11,39 +11,82 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        :root { --coffee-dark: #3e2723; --coffee-brown: #795548; --coffee-light: #fdfaf7; --accent: #d4a373; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--coffee-light); color: var(--coffee-dark); }
-        .navbar { background-color: var(--coffee-dark) !important; padding: 0.8rem 0; }
+        :root { 
+            --emerald-dark: #1a392a; 
+            --emerald-mid: #2d5a43; 
+            --gold-accent: #c5a059; 
+            --bg-light: #fdfaf7; 
+            --coffee-dark: #1a392a; 
+            --accent: #c5a059; 
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); color: var(--emerald-dark); }
+        .navbar { background-color: var(--emerald-dark) !important; padding: 0.8rem 0; border-bottom: 2px solid var(--gold-accent); }
         .navbar-brand { font-family: 'Playfair Display', serif; letter-spacing: 2px; }
         .nav-icon { font-size: 1.4rem; color: white; position: relative; transition: 0.3s; text-decoration: none; cursor: pointer; border: none; background: none; }
-        .nav-icon:hover { color: var(--accent); }
-        .badge-notify { position: absolute; top: -5px; right: -8px; font-size: 0.6rem; background: var(--accent); color: var(--coffee-dark); border-radius: 50%; padding: 2px 5px; font-weight: bold; }
+        .nav-icon:hover { color: var(--gold-accent); }
+        .badge-notify { position: absolute; top: -5px; right: -8px; font-size: 0.6rem; background: var(--gold-accent); color: white; border-radius: 50%; padding: 2px 5px; font-weight: bold; }
         
-        /* HERO SECTION DENGAN JUDUL SEDANG SATU BARIS */
+        /* HERO SECTION */
         .hero { 
-            background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1500'); 
+            background: linear-gradient(rgba(10, 30, 20, 0.85), rgba(10, 30, 20, 0.85)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=2000'); 
             background-size: cover; 
             background-position: center; 
-            height: 500px; 
+            height: 550px; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             color: white; 
             text-align: center; 
             padding: 0 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* EFEK UAP KOPI (STEAM ANIMATION) */
+        .steam-container {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .steam-container span {
+            position: relative;
+            bottom: -50px;
+            display: block;
+            margin: 0 15px;
+            min-width: 2px;
+            height: 300px;
+            background: #fff;
+            border-radius: 50%;
+            animation: animate-steam 7s linear infinite;
+            opacity: 0;
+            filter: blur(25px);
+            animation-delay: calc(var(--i) * -1.2s);
+        }
+        @keyframes animate-steam {
+            0% { transform: translateY(0) scaleX(1); opacity: 0; }
+            15% { opacity: 0.3; }
+            50% { transform: translateY(-200px) scaleX(10); opacity: 0.2; }
+            95% { opacity: 0; }
+            100% { transform: translateY(-400px) scaleX(20); }
         }
 
         .judul-sedang { 
             font-family: 'Playfair Display', serif; 
-            font-size: 2.2rem; 
+            font-size: 2.5rem; 
             font-weight: 700;
             line-height: 1.2;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             margin-bottom: 1.5rem;
-            word-spacing: 3px;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 2;
+            position: relative;
         }
-        .judul-sedang span { color: var(--accent); }
+        .judul-sedang span { color: var(--gold-accent); }
 
         @media (max-width: 992px) {
             .judul-sedang { font-size: 1.8rem; }
@@ -53,17 +96,24 @@
         }
         
         .section-title { font-family: 'Playfair Display', serif; margin-bottom: 3rem; position: relative; }
-        .section-title::after { content: ''; background: var(--accent); height: 3px; width: 60px; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); }
-        .card { border: none; border-radius: 20px; overflow: hidden; transition: all 0.4s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.05); background: #fff; }
-        .card:hover { transform: translateY(-15px); box-shadow: 0 15px 45px rgba(0,0,0,0.1); }
-        .card-img-top { height: 280px; object-fit: cover; }
-        .badge-origin { background-color: var(--accent); color: white; border-radius: 50px; padding: 5px 15px; font-size: 0.75rem; text-transform: uppercase; }
-        .price { color: var(--coffee-brown); font-weight: 700; font-size: 1.3rem; }
-        .btn-buy { background-color: var(--coffee-dark); color: white; border-radius: 50px; padding: 10px 30px; border: none; font-weight: 600; text-decoration: none; display: inline-block; transition: 0.3s; }
-        .btn-buy:hover { background-color: var(--accent); color: white; transform: scale(1.05); }
+        .section-title::after { content: ''; background: var(--gold-accent); height: 3px; width: 60px; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); }
         
-        footer { background: var(--coffee-dark); color: rgba(255,255,255,0.7); padding: 3rem 0; }
+        .card { border: none; border-radius: 20px; overflow: hidden; transition: all 0.4s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.05); background: #fff; border-bottom: 4px solid transparent; }
+        .card:hover { transform: translateY(-15px); box-shadow: 0 15px 45px rgba(26, 57, 42, 0.1); border-bottom: 4px solid var(--gold-accent); }
+        
+        .badge-origin { background-color: var(--gold-accent); color: white; border-radius: 50px; padding: 5px 15px; font-size: 0.75rem; text-transform: uppercase; }
+        .price { color: var(--emerald-mid); font-weight: 700; font-size: 1.3rem; }
+        .btn-buy { background-color: var(--emerald-dark); color: white; border-radius: 50px; padding: 10px 30px; border: 1px solid var(--gold-accent); font-weight: 600; text-decoration: none; display: inline-block; transition: 0.3s; }
+        .btn-buy:hover { background-color: var(--gold-accent); color: white; transform: scale(1.05); }
+        
+        footer { background: var(--emerald-dark); color: rgba(255,255,255,0.6); padding: 3rem 0; border-top: 4px solid var(--gold-accent); }
+        .text-accent { color: var(--gold-accent) !important; }
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+
+        /* Custom Modal Gambar */
+        .modal-image-preview { background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); }
+        .modal-image-preview .modal-content { background: transparent; border: none; }
+        .modal-image-preview .btn-close { filter: invert(1); opacity: 1; }
     </style>
 </head>
 <body>
@@ -74,6 +124,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto">
                 <li class="nav-item"><a class="nav-link active" href="{{ route('home') }}">Katalog Produk</a></li>
+                @auth
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="lacakDropdown" role="button" data-bs-toggle="dropdown">Lacak Pesanan</a>
                     <ul class="dropdown-menu p-3" style="width: 250px;">
@@ -88,6 +139,7 @@
                         </li>
                     </ul>
                 </li>
+                @endauth
             </ul>
             <div class="d-flex align-items-center gap-4">
                 <a href="{{ route('cart.index') }}" class="nav-icon">
@@ -120,6 +172,18 @@
 </nav>
 
 <header class="hero">
+    <div class="steam-container">
+        <span style="--i:1;"></span>
+        <span style="--i:3;"></span>
+        <span style="--i:16;"></span>
+        <span style="--i:5;"></span>
+        <span style="--i:13;"></span>
+        <span style="--i:20;"></span>
+        <span style="--i:6;"></span>
+        <span style="--i:7;"></span>
+        <span style="--i:10;"></span>
+        <span style="--i:8;"></span>
+    </div>
     <div class="container text-center">
         <h1 class="judul-sedang">
             Sistem Informasi Penjualan Kopi <span>Nusa Tenggara Timur</span> Berbasis Web
@@ -141,7 +205,13 @@
                 @php
                     $imagePath = filter_var($kopi->foto, FILTER_VALIDATE_URL) ? $kopi->foto : asset('storage/' . $kopi->foto);
                 @endphp
-                <img src="{{ $imagePath }}" class="card-img-top" alt="{{ $kopi->nama_kopi }}">
+                <img src="{{ $imagePath }}" 
+                     class="card-img-top img-preview-trigger" 
+                     alt="{{ $kopi->nama_kopi }}"
+                     data-bs-toggle="modal" 
+                     data-bs-target="#imagePreviewModal"
+                     data-name="{{ $kopi->nama_kopi }}"
+                     data-origin="{{ $kopi->daerah_asal }}">
                 
                 <div class="card-body p-4 d-flex flex-column">
                     <span class="badge-origin mb-2 d-inline-block">{{ $kopi->daerah_asal }}</span>
@@ -185,15 +255,46 @@
 
 <footer class="text-center">
     <div class="container">
-        <p>&copy; {{ date('Y') }} Proyek Tugas Akhir - Eulogius Jawa (22120068)</p>
+        <p>&copy; {{ date('Y') }} SI Penjualan Kopi NTT - Elgis Jawa</p>
     </div>
 </footer>
+
+<!-- Modal Preview Gambar (Shopee/TikTok Style) -->
+<div class="modal fade modal-image-preview" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div class="text-white">
+                    <h5 class="modal-title fw-bold" id="modalProductName">Nama Produk</h5>
+                    <small class="text-accent" id="modalProductOrigin">Daerah Asal</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <img src="" id="modalImageDisplay" class="img-fluid rounded-4 shadow-lg" style="max-height: 80vh;">
+            </div>
+        </div>
+    </div>
+</div>
 
 <div id="toast-container"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+// Logic untuk Image Preview Modal
+document.querySelectorAll('.img-preview-trigger').forEach(img => {
+    img.addEventListener('click', function() {
+        const name = this.getAttribute('data-name');
+        const origin = this.getAttribute('data-origin');
+        const src = this.getAttribute('src');
+
+        document.getElementById('modalProductName').innerText = name;
+        document.getElementById('modalProductOrigin').innerText = origin;
+        document.getElementById('modalImageDisplay').src = src;
+    });
+});
+
 document.querySelectorAll('.btn-add-to-cart').forEach(button => {
     button.addEventListener('click', function() {
         const productId = this.getAttribute('data-id');

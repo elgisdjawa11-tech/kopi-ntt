@@ -20,9 +20,9 @@
         @endif
         
         <style>
-            :root { --accent-coffee: #d4a373; }
-            .text-accent { color: var(--accent-coffee); }
-            .bg-accent { background-color: var(--accent-coffee); }
+            :root { --accent-coffee: #c5a059; --emerald-dark: #1a392a; }
+            .text-accent { color: var(--accent-coffee) !important; }
+            .bg-accent { background-color: var(--accent-coffee) !important; }
             /* UX: Dropdown muncul saat hover di desktop */
             @media (min-width: 1024px) {
                 .dropdown:hover .dropdown-menu { display: block; margin-top: 0; }
@@ -57,7 +57,7 @@
                                 @elseif(Auth::user()->role == 'pengirim')
                                     <a href="{{ route('pengirim.index') }}" class="px-4 py-1.5 bg-blue-600 text-white rounded-sm text-xs font-bold uppercase">Kurir Dashboard</a>
                                 @elseif(Auth::user()->role == 'pemilik')
-                                    <a href="{{ route('admin.laporan.penjualan') }}" class="px-4 py-1.5 bg-green-600 text-white rounded-sm text-xs font-bold uppercase">Laporan</a>
+                                    <a href="{{ route('admin.pemilik.dashboard') }}" class="px-4 py-1.5 bg-green-600 text-white rounded-sm text-xs font-bold uppercase">Laporan</a>
                                 @endif
 
                                 <form action="{{ route('logout') }}" method="POST" class="inline">
@@ -137,11 +137,11 @@
                 </div>
 
                 {{-- Bagian Kanan (Gambar/Logo) --}}
-                <div class="bg-[#2a1b15] relative lg:-ml-px -mb-px lg:mb-0 rounded-t-lg lg:rounded-t-none lg:rounded-r-lg aspect-[335/364] lg:aspect-auto w-full lg:w-[438px] shrink-0 overflow-hidden shadow-2xl">
-                    <div class="absolute inset-0 flex items-center justify-center opacity-40">
-                         <img src="https://img.freepik.com/free-photo/fresh-coffee-beans-spilled-from-sack-cup_1268-28318.jpg" class="object-cover w-full h-full grayscale hover:grayscale-0 transition-all duration-1000">
+                <div class="bg-[#1a392a] relative lg:-ml-px -mb-px lg:mb-0 rounded-t-lg lg:rounded-t-none lg:rounded-r-lg aspect-[335/364] lg:aspect-auto w-full lg:w-[438px] shrink-0 overflow-hidden shadow-2xl">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-60">
+                         <img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=2000" class="object-cover w-full h-full transition-all duration-1000">
                     </div>
-                    <div class="relative h-full flex items-center justify-center p-12 bg-gradient-to-t from-[#2a1b15] to-transparent">
+                    <div class="relative h-full flex items-center justify-center p-12 bg-gradient-to-t from-[#1a392a] to-transparent">
                          <div class="text-center">
                              <h2 class="text-white text-7xl font-black italic tracking-tighter leading-none">KOPI<br><span class="text-accent">NTT</span></h2>
                              <p class="text-accent font-bold tracking-[0.5em] mt-4 uppercase text-xs">Authentic Taste</p>
