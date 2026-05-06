@@ -16,10 +16,10 @@ class CheckoutController extends Controller
     public function __construct()
     {
         // Konfigurasi Midtrans diambil dari file .env atau Variables Railway
-        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-        Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
-        Config::$isSanitized = env('MIDTRANS_IS_SANITIZED', true);
-        Config::$is3ds = env('MIDTRANS_IS_3DS', true);
+        Config::$serverKey = config('midtrans.server_key');
+        Config::$isProduction = config('midtrans.is_production');
+        Config::$isSanitized = config('midtrans.is_sanitized');
+        Config::$is3ds = config('midtrans.is_3ds');
     }
 
     /**
