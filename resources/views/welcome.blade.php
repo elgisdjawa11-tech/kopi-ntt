@@ -132,7 +132,7 @@
                     </div>
 
                     <p class="mt-12 text-[10px] uppercase tracking-widest text-[#706f6c] dark:text-[#A1A09A]">
-                        &copy; {{ date('Y') }} SI Penjualan Kopi NTT - Elgis Jawa
+                        &copy; {{ date('Y') }} SI Penjualan Kopi NTT - npm 22120068_Eulogius Jawa
                     </p>
                 </div>
 

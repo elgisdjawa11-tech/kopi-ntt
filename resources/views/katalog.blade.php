@@ -101,6 +101,16 @@
         .card { border: none; border-radius: 20px; overflow: hidden; transition: all 0.4s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.05); background: #fff; border-bottom: 4px solid transparent; }
         .card:hover { transform: translateY(-15px); box-shadow: 0 15px 45px rgba(26, 57, 42, 0.1); border-bottom: 4px solid var(--gold-accent); }
         
+        /* Menyeragamkan Ukuran Gambar Produk */
+        .card-img-top {
+            height: 250px;
+            object-fit: cover;
+            transition: 0.3s;
+        }
+        .card-img-top:hover {
+            opacity: 0.9;
+        }
+        
         .badge-origin { background-color: var(--gold-accent); color: white; border-radius: 50px; padding: 5px 15px; font-size: 0.75rem; text-transform: uppercase; }
         .price { color: var(--emerald-mid); font-weight: 700; font-size: 1.3rem; }
         .btn-buy { background-color: var(--emerald-dark); color: white; border-radius: 50px; padding: 10px 30px; border: 1px solid var(--gold-accent); font-weight: 600; text-decoration: none; display: inline-block; transition: 0.3s; }
