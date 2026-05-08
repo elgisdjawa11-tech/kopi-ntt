@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -11,19 +10,17 @@ use Illuminate\Support\Facades\DB;
 class PengirimController extends Controller
 {
     /**
-     * 1. Dashboard Pengirim
-     * Menampilkan daftar pesanan yang statusnya 'Dikirim'.
-     * KUNCI: Kurir hanya melihat barang yang sedang dalam perjalanan.
+     * Dashboard Pengirim
      */
     public function index()
     {
-        // Mengambil pesanan dengan status 'Dikirim' (Tugas Aktif)
+        // Pesanan yang sedang dikirim
         $orders = Order::with('items.product')
-                    ->where('status', 'dikirim')
-                    ->latest()
-                    ->get();
+            ->where('status', 'dikirim')
+            ->latest()
+            ->get();
 
-        // Statistik untuk Dashboard Kurir
+        // Statistik dashboard
         $stats = [
             'total_tugas' => $orders->count(),
             'tugas_selesai' => Order::where('status', 'selesai')->count()
@@ -33,58 +30,75 @@ class PengirimController extends Controller
     }
 
     /**
-     * 3. Riwayat Pengiriman
-     * Menampilkan daftar pesanan yang sudah sukses diantar (Status Selesai).
+     * Riwayat Pengiriman
      */
     public function history()
     {
         $orders = Order::with('items.product')
-                    ->where('status', 'selesai')
-                    ->latest()
-                    ->paginate(10);
+            ->where('status', 'selesai')
+            ->latest()
+            ->paginate(10);
 
         return view('pengirim.history', compact('orders'));
     }
 
     /**
-     * 2. Konfirmasi Tiba (Revisi Utama)
-     * Mengubah status menjadi 'Selesai'. 
-     * Langkah ini adalah pemicu agar transaksi muncul di Laporan Penjualan Admin.
+     * Konfirmasi Pesanan Sampai
      */
     public function konfirmasiTiba(Request $request, $id)
     {
-        // Validasi: Wajib mengunggah foto bukti penerimaan barang
+        // Validasi upload gambar
         $request->validate([
-            'bukti_foto' => 'required|image|mimes:jpg,png,jpeg|max:2048'
+            'bukti_foto' => 'required|image|mimes:jpg,jpeg,png|max:2048'
         ], [
-            'bukti_foto.required' => 'Wajib mengunggah foto bukti penerimaan barang.',
+            'bukti_foto.required' => 'Foto bukti wajib diunggah.',
+            'bukti_foto.image' => 'File harus berupa gambar.',
         ]);
 
+        // Cari order
         $order = Order::findOrFail($id);
 
         try {
-            DB::transaction(function () use ($request, $order) {
-                if ($request->hasFile('bukti_foto')) {
-                    // Hapus foto lama jika ada
-                    if ($order->foto_penerimaan) {
-                        Storage::disk('public')->delete($order->foto_penerimaan);
-                    }
 
-                    // Simpan foto bukti baru
-                    $path = $request->file('bukti_foto')->store('bukti_penerimaan', 'public');
-                    
-                    // Update status jadi 'Selesai'
-                    $order->update([
-                        'foto_penerimaan' => $path,
-                        'status' => 'Selesai' 
-                    ]);
+            DB::beginTransaction();
+
+            // Upload foto
+            if ($request->hasFile('bukti_foto')) {
+
+                // Hapus foto lama jika ada
+                if ($order->foto_penerimaan) {
+
+                    Storage::disk('public')
+                        ->delete($order->foto_penerimaan);
                 }
-            });
 
-            return back()->with('success', 'Pesanan #ORD-'.$id.' berhasil diselesaikan. Bukti foto telah tersimpan!');
+                // Simpan foto baru
+                $path = $request->file('bukti_foto')
+                    ->store('bukti_penerimaan', 'public');
+
+                // Update database
+                $order->foto_penerimaan = $path;
+            }
+
+            // UBAH STATUS
+            $order->status = 'selesai';
+
+            // Simpan
+            $order->save();
+
+            DB::commit();
+
+            return redirect()
+                ->back()
+                ->with('success', 'Pesanan berhasil dikonfirmasi selesai.');
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
+
+            DB::rollBack();
+
+            return redirect()
+                ->back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 }
