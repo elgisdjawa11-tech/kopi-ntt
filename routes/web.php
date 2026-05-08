@@ -16,12 +16,13 @@ use App\Http\Controllers\PengirimController;
 |--------------------------------------------------------------------------
 */
 
-// 1. RUTE PEMBERSIH CAHE (Gunakan jika error masih muncul di Railway)
+// 1. RUTE PEMBERSIH CAHE & FIX STORAGE (Gunakan jika error/gambar tidak muncul di Railway)
 Route::get('/clear-cache', function() {
     Artisan::call('route:clear');
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
-    return "Cache Berhasil Dibersihkan! Silakan kembali ke Beranda.";
+    Artisan::call('storage:link'); // Menambahkan ini untuk memperbaiki gambar
+    return "Cache & Storage Link Berhasil Diperbaiki! Silakan kembali ke Beranda.";
 });
 
 // 2. OTENTIKASI & AKSES UMUM
