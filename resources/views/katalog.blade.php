@@ -265,7 +265,7 @@
 
 <footer class="text-center">
     <div class="container">
-        <p>&copy; {{ date('Y') }} SI Penjualan Kopi NTT - Elgis Jawa</p>
+        <p>&copy; {{ date('Y') }} SI Penjualan Kopi NTT - npm 22120068_Eulogius Jawa</p>
     </div>
 </footer>
 
