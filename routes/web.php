@@ -38,6 +38,14 @@ Route::get('/clear-cache', function() {
            "APP_URL: " . config('app.url');
 });
 
+// =========================================================================
+// RUTE DARURAT FIX GAMBAR RAILWAY
+// =========================================================================
+Route::get('/buat-link-storage', function () {
+    Artisan::call('storage:link');
+    return 'Berhasil! Jembatan storage sudah dibuat di server Railway. Silakan cek gambar katalog Anda.';
+});
+
 // 2. OTENTIKASI & AKSES UMUM
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
