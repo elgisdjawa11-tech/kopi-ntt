@@ -21,8 +21,21 @@ Route::get('/clear-cache', function() {
     Artisan::call('route:clear');
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
-    Artisan::call('storage:link'); // Menambahkan ini untuk memperbaiki gambar
-    return "Cache & Storage Link Berhasil Diperbaiki! Silakan kembali ke Beranda.";
+    
+    // Paksa hapus link lama jika ada, lalu buat baru
+    if (file_exists(public_path('storage'))) {
+        @unlink(public_path('storage'));
+    }
+    Artisan::call('storage:link');
+
+    $sampleFile = 'products/XRxq9H3NMBpOgvjpDfwjM4R3UOkc7av1fzj5OVG4.jpg';
+    $existsInStorage = Storage::disk('public')->exists($sampleFile) ? 'ADA' : 'TIDAK ADA';
+    $existsInPublic = file_exists(public_path('storage/' . $sampleFile)) ? 'ADA' : 'TIDAK ADA';
+
+    return "Cache & Storage Link Diperbaiki!<br>" . 
+           "File di Storage: $existsInStorage<br>" . 
+           "File di Public: $existsInPublic<br>" . 
+           "APP_URL: " . config('app.url');
 });
 
 // 2. OTENTIKASI & AKSES UMUM
