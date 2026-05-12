@@ -27,19 +27,22 @@
             }
         </style>
     </head>
-    <body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] flex p-4 sm:p-6 lg:p-8 items-center lg:justify-center min-h-screen flex-col overflow-x-hidden">
+
+    {{-- PERBAIKAN 1: Hapus items-center dan justify-center dari body agar navbar tidak terdorong keluar layar --}}
+    <body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] min-h-screen flex flex-col overflow-x-hidden font-sans">
         
-        {{-- HEADER / NAVIGATION --}}
-        <header class="w-full max-w-4xl text-sm mb-6 sm:mb-8 mt-2 lg:mt-0">
-            @if (Route::has('login'))
-                <nav class="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
-                    <div class="fw-bold text-xl font-semibold tracking-tight uppercase text-center sm:text-left">
+        {{-- HEADER / NAVIGATION (Akan selalu berada di paling atas) --}}
+        <header class="w-full border-b border-gray-100 dark:border-gray-800 z-50 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0">
+            <div class="max-w-5xl mx-auto p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                
+                @if (Route::has('login'))
+                    <div class="fw-bold text-2xl font-black tracking-tight uppercase text-center sm:text-left">
                         KOPI <span class="text-accent">NTT</span>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
-                        {{-- MENU TENGAH (Katalog & Lacak) - Sekarang tampil di mobile --}}
-                        <div class="flex gap-4 font-medium text-sm">
+                    <nav class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full sm:w-auto">
+                        {{-- MENU TENGAH --}}
+                        <div class="flex flex-wrap justify-center gap-4 font-semibold text-sm">
                             <a href="/" class="hover:text-accent transition">Katalog</a>
                             @auth
                                 <a href="{{ route('riwayat.pesanan') }}" class="hover:text-accent transition">Lacak Pesanan</a>
@@ -64,39 +67,38 @@
                             </div>
                         @else
                             {{-- TAMPILAN JIKA BELUM LOGIN --}}
-                            <div class="flex items-center gap-2 mt-1 sm:mt-0">
-                                <a href="{{ route('login') }}" class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] rounded-sm text-sm font-medium transition">
+                            <div class="flex flex-wrap items-center justify-center gap-2">
+                                <a href="{{ route('login') }}" class="px-5 py-2 sm:py-1.5 dark:text-[#EDEDEC] text-[#1b1b18] border border-gray-300 hover:border-gray-500 rounded-sm text-sm font-bold transition">
                                     Log in
                                 </a>
 
                                 @if (Route::has('register'))
                                     <div class="relative group dropdown">
-                                        <button class="inline-block px-5 py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-semibold dropdown-toggle shadow-md" data-bs-toggle="dropdown">
+                                        <button class="px-5 py-2 sm:py-1.5 bg-[#1b1b18] text-white rounded-sm text-sm font-bold dropdown-toggle shadow-md" data-bs-toggle="dropdown">
                                             Registrasi
                                         </button>
                                         <div class="absolute right-0 sm:right-0 mt-2 w-48 bg-white border shadow-lg rounded-sm hidden dropdown-menu z-50">
-                                            <a href="{{ route('register.pelanggan') }}" class="block px-4 py-3 sm:py-2 text-xs sm:text-sm hover:bg-gray-100 text-gray-800">Sebagai Pelanggan</a>
-                                            <a href="{{ route('register.pengirim') }}" class="block px-4 py-3 sm:py-2 text-xs sm:text-sm hover:bg-gray-100 text-gray-800 border-t">Sebagai Pengirim (Kurir)</a>
-                                            <a href="{{ route('register.admin') }}" class="block px-4 py-3 sm:py-2 text-xs sm:text-sm hover:bg-gray-100 text-gray-800 border-t">Sebagai Admin</a>
-                                            <a href="{{ route('register.pemilik') }}" class="block px-4 py-3 sm:py-2 text-xs sm:text-sm hover:bg-gray-100 text-gray-800 border-t">Sebagai Pemilik</a>
+                                            <a href="{{ route('register.pelanggan') }}" class="block px-4 py-3 sm:py-2 text-xs sm:text-sm hover:bg-gray-100 text-gray-800 font-medium">Sebagai Pelanggan</a>
+                                            <a href="{{ route('register.pengirim') }}" class="block px-4 py-3 sm:py-2 text-xs sm:text-sm hover:bg-gray-100 text-gray-800 font-medium border-t">Sebagai Pengirim (Kurir)</a>
+                                            <a href="{{ route('register.admin') }}" class="block px-4 py-3 sm:py-2 text-xs sm:text-sm hover:bg-gray-100 text-gray-800 font-medium border-t">Sebagai Admin</a>
+                                            <a href="{{ route('register.pemilik') }}" class="block px-4 py-3 sm:py-2 text-xs sm:text-sm hover:bg-gray-100 text-gray-800 font-medium border-t">Sebagai Pemilik</a>
                                             <a href="{{ route('register') }}" class="hidden"></a>
                                         </div>
                                     </div>
                                 @endif
                             </div>
                         @endauth
-                    </div>
-                </nav>
-            @endif
+                    </nav>
+                @endif
+            </div>
         </header>
 
-        {{-- MAIN CONTENT --}}
-        <div class="flex items-center justify-center w-full transition-opacity opacity-100 duration-750 lg:grow">
-            <main class="flex w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl flex-col-reverse lg:flex-row shadow-[0px_4px_20px_rgba(0,0,0,0.06)] rounded-xl overflow-hidden bg-white dark:bg-[#161615]">
+        {{-- MAIN CONTENT (Dibungkus flex-grow agar mengisi sisa ruang dan posisinya di tengah layar) --}}
+        <div class="flex-grow flex items-center justify-center p-4 sm:p-8 w-full">
+            <main class="flex w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl flex-col-reverse lg:flex-row shadow-2xl rounded-xl overflow-hidden bg-white dark:bg-[#161615]">
                 
                 {{-- Bagian Kiri (Teks) --}}
                 <div class="flex-1 p-6 sm:p-8 lg:p-14 xl:p-16 flex flex-col justify-center dark:text-[#EDEDEC]">
-                    
                     <h1 class="mb-3 sm:mb-4 text-2xl sm:text-3xl font-bold leading-tight text-center sm:text-left">
                         SISTEM INFORMASI <br>
                         <span class="text-accent uppercase text-3xl sm:text-4xl">Penjualan Kopi NTT</span> <br>
@@ -148,6 +150,5 @@
             </main>
         </div>
 
-        <div class="h-10 hidden lg:block"></div>
     </body>
 </html>
