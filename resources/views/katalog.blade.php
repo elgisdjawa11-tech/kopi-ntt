@@ -19,7 +19,7 @@
             --coffee-dark: #1a392a; 
             --accent: #c5a059; 
         }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); color: var(--emerald-dark); }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-light); color: var(--emerald-dark); overflow-x: hidden; }
         .navbar { background-color: var(--emerald-dark) !important; padding: 0.8rem 0; border-bottom: 2px solid var(--gold-accent); }
         .navbar-brand { font-family: 'Playfair Display', serif; letter-spacing: 2px; }
         .nav-icon { font-size: 1.4rem; color: white; position: relative; transition: 0.3s; text-decoration: none; cursor: pointer; border: none; background: none; }
@@ -131,17 +131,28 @@
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
     <div class="container">
         <a class="navbar-brand fw-bold fs-3" href="{{ route('home') }}">KOPI <span style="color: var(--accent)">NTT</span></a>
+        
+        <div class="d-flex align-items-center d-lg-none gap-3">
+            <a href="{{ route('cart.index') }}" class="nav-icon">
+                <i class="bi bi-cart3"></i>
+                <span class="badge-notify cart-count-badge">{{ count((array) session('cart')) }}</span>
+            </a>
+            <button class="navbar-toggler shadow-none border-0 px-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto">
+            <ul class="navbar-nav mx-auto text-center mt-3 mt-lg-0">
                 <li class="nav-item"><a class="nav-link active" href="{{ route('home') }}">Katalog Produk</a></li>
                 @auth
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="lacakDropdown" role="button" data-bs-toggle="dropdown">Lacak Pesanan</a>
-                    <ul class="dropdown-menu p-3" style="width: 250px;">
+                    <ul class="dropdown-menu p-3 mx-auto shadow border-0" style="width: 250px;">
                         <li>
                             <form onsubmit="event.preventDefault(); let id = document.getElementById('order_id').value; if(id) { window.location.href='/pesanan/lacak/' + id; }">
                                 <div class="mb-2">
-                                    <label class="small fw-bold mb-1 text-dark">Masukkan ID Pesanan:</label>
+                                    <label class="small fw-bold mb-1 text-dark text-start w-100">Masukkan ID Pesanan:</label>
                                     <input type="number" id="order_id" class="form-control form-control-sm" placeholder="Contoh: 1" required>
                                 </div>
                                 <button type="submit" class="btn btn-sm btn-dark w-100 rounded-pill">Cek Status</button>
@@ -151,17 +162,19 @@
                 </li>
                 @endauth
             </ul>
-            <div class="d-flex align-items-center gap-4">
-                <a href="{{ route('cart.index') }}" class="nav-icon">
+            
+            <div class="d-flex flex-column flex-lg-row align-items-center gap-3 gap-lg-4 mt-3 mt-lg-0 pb-3 pb-lg-0">
+                <a href="{{ route('cart.index') }}" class="nav-icon d-none d-lg-block">
                     <i class="bi bi-cart3"></i>
-                    <span class="badge-notify" id="cart-count">{{ count((array) session('cart')) }}</span>
+                    <span class="badge-notify cart-count-badge">{{ count((array) session('cart')) }}</span>
                 </a>
+
                 @auth
-                    <div class="dropdown">
+                    <div class="dropdown w-100 text-center text-lg-start">
                         <button class="btn btn-outline-light btn-sm px-4 rounded-pill dropdown-toggle" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }}
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end mt-2">
+                        <ul class="dropdown-menu dropdown-menu-end mt-2 text-center text-lg-start shadow border-0">
                             <li><a class="dropdown-item small" href="{{ route('riwayat.pesanan') }}"><i class="bi bi-clock-history me-2"></i>Riwayat Pesanan</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
@@ -173,8 +186,20 @@
                         </ul>
                     </div>
                 @else
-                    <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm px-4 rounded-pill">Masuk</a>
-                    <a href="{{ route('register') }}" class="btn btn-outline-light btn-sm px-4 rounded-pill ms-2">Registrasi</a>
+                    <div class="d-flex flex-column flex-lg-row gap-2 w-100 justify-content-center">
+                        <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm px-4 rounded-pill">Masuk</a>
+                        <div class="dropdown text-center w-100 w-lg-auto">
+                            <button class="btn btn-light btn-sm px-4 rounded-pill dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                                Registrasi
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 text-center text-lg-start">
+                                <li><a class="dropdown-item small py-2" href="{{ route('register.pelanggan') }}">Sebagai Pelanggan</a></li>
+                                <li><a class="dropdown-item small py-2" href="{{ route('register.pengirim') }}">Sebagai Pengirim (Kurir)</a></li>
+                                <li><a class="dropdown-item small py-2" href="{{ route('register.admin') }}">Sebagai Admin</a></li>
+                                <li><a class="dropdown-item small py-2" href="{{ route('register.pemilik') }}">Sebagai Pemilik</a></li>
+                            </ul>
+                        </div>
+                    </div>
                 @endauth
             </div>
         </div>
@@ -269,7 +294,6 @@
     </div>
 </footer>
 
-<!-- Modal Preview Gambar (Shopee/TikTok Style) -->
 <div class="modal fade modal-image-preview" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -308,7 +332,7 @@ document.querySelectorAll('.img-preview-trigger').forEach(img => {
 document.querySelectorAll('.btn-add-to-cart').forEach(button => {
     button.addEventListener('click', function() {
         const productId = this.getAttribute('data-id');
-        const cartBadge = document.getElementById('cart-count');
+        const cartBadges = document.querySelectorAll('.cart-count-badge');
         const originalContent = this.innerHTML;
         
         this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
@@ -329,7 +353,7 @@ document.querySelectorAll('.btn-add-to-cart').forEach(button => {
                 return;
             }
             if (response.ok) {
-                cartBadge.innerText = data.cart_count;
+                cartBadges.forEach(badge => badge.innerText = data.cart_count);
                 showToast("Produk berhasil ditambahkan!", "success");
             } else {
                 showToast("Gagal menambah produk.", "danger");
